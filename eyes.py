@@ -1,38 +1,40 @@
+#https://www.datacamp.com/tutorial/face-detection-python-opencv
+#https://www.geeksforgeeks.org/python/opencv-python-program-face-detection/
+
 import cv2
 
-# Load the cascade classifier
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+face_classifier = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
 
-# Start video capture
-cap = cv2.VideoCapture(0)
+video_capture = cv2.VideoCapture(0)
 
-# Create a resizable window
-cv2.namedWindow('Facial Recognition', cv2.WINDOW_NORMAL)
+def detect_bounding_box(vid):
+    gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
+    faces = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
+    for (x, y, w, h) in faces:
+        cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 255, 0), 4)
+    return faces
 
 while True:
-    # Read frame from camera
-    ret, frame = cap.read()
-    
-    if not ret:
+
+    result, video_frame = video_capture.read()  # read frames from the video
+    if result is False:
+        break  # terminate the loop if the frame is not read successfully
+
+    faces = detect_bounding_box(
+        video_frame
+    )  # apply the function we created to the video frame
+
+    cv2.imshow(
+        "My Face Detection Project", video_frame
+    )  # display the processed frame in a window named "My Face Detection Project"
+
+    # Check if window was closed or 'q' was pressed
+    if cv2.getWindowProperty("My Face Detection Project", cv2.WND_PROP_VISIBLE) < 1:
         break
-    
-    # Convert to grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
-    # Detect faces
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-    
-    # Draw rectangles around faces
-    for (x, y, w, h) in faces:
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-    
-    # Display the frame
-    cv2.imshow('Facial Recognition', frame)
-    
-    # Break loop on 'q' key or window close
-    if cv2.waitKey(1) & 0xFF == ord('q') or cv2.getWindowProperty('Facial Recognition', cv2.WND_PROP_VISIBLE) < 1:
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
-# Release resources
-cap.release()
+video_capture.release()
 cv2.destroyAllWindows()
