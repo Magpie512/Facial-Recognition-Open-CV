@@ -2,12 +2,18 @@
 #https://www.geeksforgeeks.org/python/opencv-python-program-face-detection/
 
 import cv2
+import os
+from datetime import datetime
 
 face_classifier = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
 
 video_capture = cv2.VideoCapture(0)
+
+# Create img folder if it doesn't exist
+if not os.path.exists("img"):
+    os.makedirs("img")
 
 def detect_bounding_box(vid):
     gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
@@ -30,11 +36,20 @@ while True:
         "My Face Detection Project", video_frame
     )  # display the processed frame in a window named "My Face Detection Project"
 
+    key = cv2.waitKey(1) & 0xFF
+    
     # Check if window was closed or 'q' was pressed
-    if cv2.getWindowProperty("My Face Detection Project", cv2.WND_PROP_VISIBLE) < 1:
+    try:
+        if cv2.getWindowProperty("My Face Detection Project", cv2.WND_PROP_VISIBLE) < 1:
+            break
+    except:
         break
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+    
+    if key == ord("s"):  # Press 's' to save the current frame
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"img/frame_{timestamp}.jpg"
+        cv2.imwrite(filename, video_frame)
+        print(f"Frame saved as {filename}")
 
 video_capture.release()
 cv2.destroyAllWindows()
